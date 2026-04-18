@@ -5,11 +5,17 @@ type Settings = {
   'backend-api-key'?: string
 }
 
+type LanguagesMode = 'any-to-any' | 'directional'
+
 type Language = {
   code: string
   name: string
-  supports_source: boolean
-  supports_target: boolean
+  targets?: string[]
+}
+
+type LanguagesResponse = {
+  mode: LanguagesMode
+  languages: Language[]
 }
 
 type BackendHealth = {
@@ -68,7 +74,7 @@ async function register ({
     if (!url) {
       const record: HealthCheckRecord = { status: 'unconfigured', checkedAt: Date.now() }
       await storageManager.storeData(STORAGE_KEY_HEALTH, JSON.stringify(record))
-      await storageManager.storeData(STORAGE_KEY_LANGUAGES, JSON.stringify([]))
+      await storageManager.storeData(STORAGE_KEY_LANGUAGES, JSON.stringify(null))
       logger.info('[subtitle-translator] health check skipped: backend URL not set')
       return
     }
@@ -93,9 +99,9 @@ async function register ({
     }
 
     const languagesResult = await fetchJson(`${url}/languages`, headers)
-    const languages = languagesResult.status === 'ok' && Array.isArray(languagesResult.data)
-      ? (languagesResult.data as Language[])
-      : []
+    const languagesPayload = languagesResult.status === 'ok'
+      ? parseLanguagesResponse(languagesResult.data)
+      : null
 
     const record: HealthCheckRecord = {
       status: 'ok',
@@ -103,12 +109,13 @@ async function register ({
       response: healthResult.data as BackendHealth
     }
     await storageManager.storeData(STORAGE_KEY_HEALTH, JSON.stringify(record))
-    await storageManager.storeData(STORAGE_KEY_LANGUAGES, JSON.stringify(languages))
+    await storageManager.storeData(STORAGE_KEY_LANGUAGES, JSON.stringify(languagesPayload))
 
     logger.info('[subtitle-translator] health check ok', {
       backend: url,
       models: record.response?.models_loaded,
-      languagesCount: languages.length
+      mode: languagesPayload?.mode,
+      languagesCount: languagesPayload?.languages.length ?? 0
     })
   }
 
@@ -133,7 +140,7 @@ async function register ({
 
     return res.json({
       health: healthRaw ? JSON.parse(healthRaw) : null,
-      languages: languagesRaw ? JSON.parse(languagesRaw) : []
+      languages: languagesRaw ? JSON.parse(languagesRaw) : null
     })
   })
 
@@ -178,4 +185,23 @@ async function fetchJson (url: string, headers: Record<string, string>): Promise
   } catch (err: any) {
     return { status: 'invalid_response', detail: err?.message ?? 'invalid JSON' }
   }
+}
+
+function parseLanguagesResponse (data: unknown): LanguagesResponse | null {
+  if (!data || typeof data !== 'object') return null
+  const mode = (data as any).mode
+  const languages = (data as any).languages
+  if (mode !== 'any-to-any' && mode !== 'directional') return null
+  if (!Array.isArray(languages)) return null
+  const parsed: Language[] = []
+  for (const lang of languages) {
+    if (!lang || typeof lang.code !== 'string' || typeof lang.name !== 'string') return null
+    const entry: Language = { code: lang.code, name: lang.name }
+    if (mode === 'directional') {
+      if (!Array.isArray(lang.targets) || !lang.targets.every((t: unknown) => typeof t === 'string')) return null
+      entry.targets = lang.targets
+    }
+    parsed.push(entry)
+  }
+  return { mode, languages: parsed }
 }

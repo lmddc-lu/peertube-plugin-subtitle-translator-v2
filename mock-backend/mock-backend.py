@@ -10,8 +10,11 @@ def health():
 
 @app.get("/languages")
 def languages():
-    return [
-        {"code": "en", "name": "English", "supports_source": True, "supports_target": True},
-        {"code": "fr", "name": "French", "supports_source": True, "supports_target": True},
-        {"code": "de", "name": "German", "supports_source": True, "supports_target": True},
-    ]
+    return {
+        "mode": "any-to-any",
+        "languages": [
+            {"code": "en", "name": "English"},
+            {"code": "fr", "name": "French"},
+            {"code": "de", "name": "German"},
+        ],
+    }
