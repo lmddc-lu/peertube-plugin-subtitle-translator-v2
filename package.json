@@ -1,0 +1,32 @@
+{
+  "name": "peertube-plugin-subtitle-translator",
+  "version": "0.0.1",
+  "description": "Translate PeerTube video captions via a pluggable HTTP backend",
+  "engine": {
+    "peertube": ">=8.0.0"
+  },
+  "keywords": [
+    "peertube",
+    "plugin",
+    "subtitles",
+    "translation"
+  ],
+  "homepage": "https://github.com/lmddc-lu/peertube-plugin-subtitle-translator",
+  "author": "Luxembourg Media & Digital Design Centre",
+  "bugs": "https://github.com/lmddc-lu/peertube-plugin-subtitle-translator/issues",
+  "license": "AGPL-3.0",
+  "library": "./dist/main.js",
+  "translations": {
+    "fr": "./languages/fr.json"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "devDependencies": {
+    "@peertube/peertube-types": "^8.0.0",
+    "@types/express": "^5.0.0",
+    "@types/node": "^24.0.0",
+    "typescript": "^5.6.0"
+  }
+}
