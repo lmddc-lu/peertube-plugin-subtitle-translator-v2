@@ -3,3 +3,5 @@ dist/
 *.log
 CLAUDE.md
 official-plugins-master
+peertube-instance
+peertube-plugin-subtitle-translator-*
