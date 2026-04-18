@@ -22,11 +22,15 @@
       "scopes": ["admin-plugin"]
     }
   ],
+  "css": [
+    "assets/admin-plugin.css"
+  ],
   "translations": {
     "fr": "./languages/fr.json"
   },
   "files": [
     "dist",
+    "assets",
     "languages"
   ],
   "scripts": {

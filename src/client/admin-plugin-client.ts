@@ -107,7 +107,7 @@ function renderPanel (panel: HTMLElement, { health, languages }: StatusPayload):
     rows.push(row('Status', '<em>never checked</em>'))
   } else {
     const statusLine = statusBadge(health.status) +
-      (health.detail ? ` <small style="color:#666;">${escapeHtml(health.detail)}</small>` : '')
+      (health.detail ? ` <small class="st-detail">${escapeHtml(health.detail)}</small>` : '')
     rows.push(row('Status', statusLine))
     rows.push(row('Last checked', new Date(health.checkedAt).toLocaleString()))
     if (health.response?.models_loaded?.length) {
@@ -126,35 +126,30 @@ function renderPanel (panel: HTMLElement, { health, languages }: StatusPayload):
 
 function renderError (panel: HTMLElement, message: string): void {
   panel.innerHTML = panelWrap(
-    `<div style="color:#d33;">Failed to load backend status: ${escapeHtml(message)}</div>`
+    `<div class="st-error">Failed to load backend status: ${escapeHtml(message)}</div>`
   )
 }
 
 function panelWrap (inner: string): string {
-  return `<div style="padding:12px;border:1px solid #ddd;border-radius:4px;margin:4px 0 12px;background:#fafafa;">${inner}</div>`
+  return `<div class="st-status-panel">${inner}</div>`
 }
 
 function row (label: string, value: string): string {
-  return `<div style="margin:6px 0;"><strong>${escapeHtml(label)}:</strong> ${value}</div>`
+  return `<div class="st-row"><strong>${escapeHtml(label)}:</strong> ${value}</div>`
 }
 
 function statusBadge (status: HealthCheckStatus): string {
-  const colors: Record<HealthCheckStatus, string> = {
-    ok: '#2a7',
-    unconfigured: '#888',
-    backend_unreachable: '#d33',
-    backend_error: '#d33',
-    invalid_response: '#d33'
-  }
-  const color = colors[status] ?? '#888'
-  return `<span style="background:${color};color:#fff;padding:2px 8px;border-radius:3px;font-size:0.85em;">${escapeHtml(status)}</span>`
+  const variant = status === 'ok' ? 'st-badge-ok'
+    : status === 'unconfigured' ? 'st-badge-muted'
+      : 'st-badge-error'
+  return `<span class="st-badge ${variant}">${escapeHtml(status)}</span>`
 }
 
 function chip (lang: Language, mode: LanguagesResponse['mode']): string {
   const suffix = mode === 'directional' && lang.targets
-    ? ` <small style="color:#666;">→ ${lang.targets.length ? lang.targets.map(escapeHtml).join(', ') : '<em>none</em>'}</small>`
+    ? ` <small class="st-chip-targets">→ ${lang.targets.length ? lang.targets.map(escapeHtml).join(', ') : '<em>none</em>'}</small>`
     : ''
-  return `<span style="display:inline-block;padding:3px 10px;margin:3px 4px 3px 0;border:1px solid #bbb;border-radius:12px;font-size:0.85em;background:#fff;">${escapeHtml(lang.code)} · ${escapeHtml(lang.name)}${suffix}</span>`
+  return `<span class="st-chip">${escapeHtml(lang.code)} · ${escapeHtml(lang.name)}${suffix}</span>`
 }
 
 function escapeHtml (s: string): string {
