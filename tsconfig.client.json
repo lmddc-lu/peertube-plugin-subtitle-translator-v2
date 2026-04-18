@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "rootDir": "./src/client",
+    "outDir": "./dist/client",
+
+    "module": "esnext",
+    "moduleResolution": "node",
+    "target": "es2020",
+    "lib": ["esnext", "dom"],
+    "types": [],
+
+    "sourceMap": true,
+
+    "strict": true,
+    "strictNullChecks": false,
+    "noUncheckedIndexedAccess": true,
+
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/client/**/*"]
+}

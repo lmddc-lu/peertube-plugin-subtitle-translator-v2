@@ -16,6 +16,12 @@
   "bugs": "https://github.com/lmddc-lu/peertube-plugin-subtitle-translator/issues",
   "license": "AGPL-3.0",
   "library": "./dist/main.js",
+  "clientScripts": [
+    {
+      "script": "dist/client/admin-plugin-client.js",
+      "scopes": ["admin-plugin"]
+    }
+  ],
   "translations": {
     "fr": "./languages/fr.json"
   },
@@ -24,7 +30,7 @@
     "languages"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && tsc -p tsconfig.client.json",
     "watch": "tsc --watch"
   },
   "devDependencies": {

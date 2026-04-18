@@ -52,6 +52,14 @@ async function register ({
   const { logger } = peertubeHelpers
 
   registerSetting({
+    name: 'health-status-panel',
+    label: 'Backend status',
+    type: 'html',
+    private: true,
+    descriptionHTML: '<div id="subtitle-translator-status">Loading…</div>'
+  })
+
+  registerSetting({
     name: 'backend-url',
     label: 'Backend base URL',
     type: 'input',
@@ -73,8 +81,8 @@ async function register ({
 
     if (!url) {
       const record: HealthCheckRecord = { status: 'unconfigured', checkedAt: Date.now() }
-      await storageManager.storeData(STORAGE_KEY_HEALTH, JSON.stringify(record))
-      await storageManager.storeData(STORAGE_KEY_LANGUAGES, JSON.stringify(null))
+      await storageManager.storeData(STORAGE_KEY_HEALTH, record)
+      await storageManager.storeData(STORAGE_KEY_LANGUAGES, null)
       logger.info('[subtitle-translator] health check skipped: backend URL not set')
       return
     }
@@ -89,7 +97,7 @@ async function register ({
         checkedAt: Date.now(),
         detail: healthResult.detail
       }
-      await storageManager.storeData(STORAGE_KEY_HEALTH, JSON.stringify(record))
+      await storageManager.storeData(STORAGE_KEY_HEALTH, record)
       logger.warn('[subtitle-translator] health check failed', {
         backend: url,
         status: healthResult.status,
@@ -108,8 +116,8 @@ async function register ({
       checkedAt: Date.now(),
       response: healthResult.data as BackendHealth
     }
-    await storageManager.storeData(STORAGE_KEY_HEALTH, JSON.stringify(record))
-    await storageManager.storeData(STORAGE_KEY_LANGUAGES, JSON.stringify(languagesPayload))
+    await storageManager.storeData(STORAGE_KEY_HEALTH, record)
+    await storageManager.storeData(STORAGE_KEY_LANGUAGES, languagesPayload)
 
     logger.info('[subtitle-translator] health check ok', {
       backend: url,
@@ -135,13 +143,10 @@ async function register ({
     const user = await peertubeHelpers.user.getAuthUser(res)
     if (!user || user.role !== 0) return res.sendStatus(403)
 
-    const healthRaw = await storageManager.getData(STORAGE_KEY_HEALTH)
-    const languagesRaw = await storageManager.getData(STORAGE_KEY_LANGUAGES)
+    const health = await storageManager.getData(STORAGE_KEY_HEALTH) as unknown as HealthCheckRecord | null
+    const languages = await storageManager.getData(STORAGE_KEY_LANGUAGES) as unknown as LanguagesResponse | null
 
-    return res.json({
-      health: healthRaw ? JSON.parse(healthRaw) : null,
-      languages: languagesRaw ? JSON.parse(languagesRaw) : null
-    })
+    return res.json({ health: health ?? null, languages: languages ?? null })
   })
 
   logger.info('[subtitle-translator] plugin registered')
