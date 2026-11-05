@@ -1,32 +1,36 @@
 {
   "name": "peertube-plugin-subtitle-translator",
   "version": "0.0.1",
-  "description": "Translate PeerTube video captions via a pluggable HTTP backend",
+  "description": "Translate PeerTube video captions with TranslateGemma through an OpenAI-compatible chat completions API",
   "engine": {
-    "peertube": ">=8.0.0"
+    "peertube": ">=8.3.0"
   },
   "keywords": [
     "peertube",
     "plugin",
+    "captions",
     "subtitles",
     "translation"
   ],
   "homepage": "https://github.com/lmddc-lu/peertube-plugin-subtitle-translator",
-  "author": "Luxembourg Media & Digital Design Centre",
   "bugs": "https://github.com/lmddc-lu/peertube-plugin-subtitle-translator/issues",
+  "author": "Luxembourg Media & Digital Design Centre",
   "license": "AGPL-3.0",
   "library": "./dist/main.js",
   "clientScripts": [
     {
-      "script": "dist/client/admin-plugin-client.js",
-      "scopes": ["admin-plugin"]
+      "script": "dist/client/common-client.js",
+      "scopes": [
+        "common"
+      ]
     }
   ],
   "css": [
-    "assets/admin-plugin.css"
+    "assets/style.css"
   ],
   "translations": {
-    "fr": "./languages/fr.json"
+    "fr": "./languages/fr.json",
+    "de": "./languages/de.json"
   },
   "files": [
     "dist",
@@ -35,12 +39,13 @@
   ],
   "scripts": {
     "build": "tsc && tsc -p tsconfig.client.json",
-    "watch": "tsc --watch"
+    "watch": "tsc --watch",
+    "stage": "npm run build && mkdir -p .staging && rm -rf .staging/peertube-plugin-subtitle-translator .staging/*.tgz && mkdir .staging/peertube-plugin-subtitle-translator && npm pack --pack-destination .staging && tar xzf .staging/peertube-plugin-subtitle-translator-*.tgz -C .staging/peertube-plugin-subtitle-translator --strip-components=1"
   },
   "devDependencies": {
-    "@peertube/peertube-types": "^8.0.0",
-    "@types/express": "^5.0.0",
-    "@types/node": "^24.0.0",
-    "typescript": "^5.6.0"
+    "@peertube/peertube-types": "8.3.2",
+    "@types/express": "^4.17.25",
+    "@types/node": "^22.20.5",
+    "typescript": "^5.9.3"
   }
 }

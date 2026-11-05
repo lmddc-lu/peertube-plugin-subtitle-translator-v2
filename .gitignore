@@ -1,7 +1,8 @@
 node_modules/
 dist/
+.staging/
+*.tgz
 *.log
 CLAUDE.md
 official-plugins-master
 peertube-instance
-peertube-plugin-subtitle-translator-*
