@@ -6,7 +6,7 @@
   "Translation model": "Übersetzungsmodell",
   "Name of the TranslateGemma model, as listed by the API.": "Name des TranslateGemma-Modells, wie er von der API aufgeführt wird.",
   "Target languages": "Zielsprachen",
-  "Comma-separated language codes offered as translation targets, e.g. <code>en, fr, de, lb</code>.": "Kommagetrennte Sprachcodes, die als Zielsprachen angeboten werden, z. B. <code>en, fr, de, lb</code>.",
+  "Comma-separated PeerTube language codes offered as translation targets. The default lists the languages TranslateGemma was evaluated on (translated from English), plus English and Luxembourgish.": "Kommagetrennte PeerTube-Sprachcodes, die als Zielsprachen angeboten werden. Die Standardliste enthält die Sprachen, für die TranslateGemma evaluiert wurde (Übersetzung aus dem Englischen), sowie Englisch und Luxemburgisch.",
   "Translate captions": "Untertitel übersetzen",
   "Create a caption in another language by translating one of this video's captions with TranslateGemma. Review the result in the caption editor afterwards.": "Erstellen Sie einen Untertitel in einer anderen Sprache, indem Sie einen der Untertitel dieses Videos mit TranslateGemma übersetzen. Prüfen Sie das Ergebnis anschließend im Untertitel-Editor.",
   "From": "Von",

@@ -222,13 +222,13 @@ function renderForm (ctx: PanelContext, overview: Overview, captions: Caption[])
     return
   }
 
-  const sourceSelect = select(captions.map(caption => ({ value: caption.language.id, label: ctx.languageName(caption.language.id) })))
+  const sourceSelect = select(byLabel(captions.map(caption => ({ value: caption.language.id, label: ctx.languageName(caption.language.id) }))))
   const targetSelect = select([])
 
   const updateTargets = () => {
     const previous = targetSelect.value
     const targets = overview.targetLanguages.filter(language => language.code !== sourceSelect.value)
-    targetSelect.replaceChildren(...targets.map(language => option(language.code, ctx.languageName(language.code))))
+    targetSelect.replaceChildren(...byLabel(targets.map(language => ({ value: language.code, label: ctx.languageName(language.code) }))).map(o => option(o.value, o.label)))
     if (targets.some(language => language.code === previous)) targetSelect.value = previous
   }
   sourceSelect.addEventListener('change', updateTargets)
@@ -398,6 +398,12 @@ function option (value: string, label: string): HTMLOptionElement {
   element.value = value
   element.textContent = label
   return element
+}
+
+/** Sorts options by label in the page language, so a native select can be searched by typing. */
+function byLabel (options: { value: string, label: string }[]): { value: string, label: string }[] {
+  const collator = new Intl.Collator(document.documentElement.lang || navigator.language)
+  return [ ...options ].sort((a, b) => collator.compare(a.label, b.label))
 }
 
 function select (options: { value: string, label: string }[]): HTMLSelectElement {

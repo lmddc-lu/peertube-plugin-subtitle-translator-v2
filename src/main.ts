@@ -15,7 +15,7 @@ import type { Request, Response } from 'express'
 import type { Language, TranslationApiConfig } from './backend'
 import { InvalidSourceError } from './errors'
 import { createTranslationJobs, type TranslationJob } from './jobs'
-import { languageFromCode } from './languages'
+import { DEFAULT_TARGET_LANGUAGES, languageFromCode } from './languages'
 import { parseWebVtt, type SourceCue } from './webvtt'
 
 // UserRight.UPDATE_ANY_VIDEO in @peertube/peertube-models (the types package has no runtime values)
@@ -77,9 +77,11 @@ async function register ({
   registerSetting({
     name: 'target-languages',
     label: 'Target languages',
-    type: 'input',
+    type: 'input-textarea',
     private: true,
-    descriptionHTML: 'Comma-separated language codes offered as translation targets, e.g. <code>en, fr, de, lb</code>.'
+    default: DEFAULT_TARGET_LANGUAGES.join(', '),
+    descriptionHTML: 'Comma-separated PeerTube language codes offered as translation targets. ' +
+      'The default lists the languages TranslateGemma was evaluated on (translated from English), plus English and Luxembourgish.'
   })
 
   async function readConfig (): Promise<PluginConfig | string> {

@@ -2,7 +2,8 @@
  * Client for an OpenAI-compatible chat completions endpoint (`POST {baseUrl}/chat/completions`)
  * serving TranslateGemma
  *
- * The prompt is TranslateGemma's text translation prompt sent as plain string content. The
+ * The prompt is TranslateGemma's preferred prompt (TranslateGemma Technical Report, arXiv
+ * 2601.09012, Figure 3), sent as plain string content. The
  * structured content form of the Hugging Face chat template (`source_lang_code` /
  * `target_lang_code` fields) does not survive the gateway, so it is not used.
  */
@@ -68,7 +69,7 @@ function buildPrompt (source: Language, target: Language, text: string): string 
   const t = target.name
   return `You are a professional ${s} (${source.code}) to ${t} (${target.code}) translator. ` +
     `Your goal is to accurately convey the meaning and nuances of the original ${s} text ` +
-    `while adhering to ${t} grammar, vocabulary, and cultural sensitivities.\n` +
+    `while adhering to ${t} grammar, vocabulary, and cultural sensitivities. ` +
     `Produce only the ${t} translation, without any additional explanations or commentary. ` +
     `Please translate the following ${s} text into ${t}:\n\n\n${text}`
 }

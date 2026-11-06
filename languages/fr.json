@@ -6,7 +6,7 @@
   "Translation model": "Modèle de traduction",
   "Name of the TranslateGemma model, as listed by the API.": "Nom du modèle TranslateGemma, tel que l'API le répertorie.",
   "Target languages": "Langues cibles",
-  "Comma-separated language codes offered as translation targets, e.g. <code>en, fr, de, lb</code>.": "Codes de langue, séparés par des virgules, proposés comme langues cibles, par exemple <code>en, fr, de, lb</code>.",
+  "Comma-separated PeerTube language codes offered as translation targets. The default lists the languages TranslateGemma was evaluated on (translated from English), plus English and Luxembourgish.": "Codes de langue PeerTube, séparés par des virgules, proposés comme langues cibles. La liste par défaut reprend les langues sur lesquelles TranslateGemma a été évalué (traduction depuis l'anglais), ainsi que l'anglais et le luxembourgeois.",
   "Translate captions": "Traduire les sous-titres",
   "Create a caption in another language by translating one of this video's captions with TranslateGemma. Review the result in the caption editor afterwards.": "Créez un sous-titre dans une autre langue en traduisant l'un des sous-titres de cette vidéo avec TranslateGemma. Relisez ensuite le résultat dans l'éditeur de sous-titres.",
   "From": "De",
