@@ -5,6 +5,8 @@ It translates one of the video's existing captions into another language with
 [TranslateGemma](https://arxiv.org/abs/2601.09012) and saves the result as a new caption, which
 can then be reviewed and fixed in PeerTube's native caption editor.
 
+![The Translate captions section below a video's caption list](docs/screenshot.png)
+
 It replaces [peertube-plugin-subtitle-translator](https://github.com/lmddc-lu/peertube-plugin-subtitle-translator)
 (v1, OPUS-MT backend with its own editor page). Both are separate plugins: v2 does not read v1's
 settings or data.
@@ -24,7 +26,7 @@ needed.
 | Translation API base URL | Base URL of the OpenAI-compatible API, e.g. `https://llm.example.com/v1`. |
 | Translation API key | Optional. Sent as `Authorization: Bearer <key>`. |
 | Translation model | Name of the TranslateGemma model, as listed by the API. |
-| Target languages | Comma-separated PeerTube language codes offered as targets. Defaults to the 55 languages TranslateGemma was evaluated on (from English), plus English and Luxembourgish. |
+| Target languages | Comma-separated PeerTube language codes offered as targets. Defaults to the 55 languages TranslateGemma was evaluated on (from English). |
 
 ## How it works
 
