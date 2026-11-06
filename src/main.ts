@@ -1,5 +1,5 @@
 /**
- * peertube-plugin-subtitle-translator: translates a video's captions with TranslateGemma through
+ * peertube-plugin-subtitle-translator-v2: translates a video's captions with TranslateGemma through
  * an OpenAI-compatible chat completions API.
  *
  * Routes (under the plugin router):

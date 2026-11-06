@@ -1,5 +1,5 @@
 {
-  "name": "peertube-plugin-subtitle-translator",
+  "name": "peertube-plugin-subtitle-translator-v2",
   "version": "0.0.1",
   "description": "Translate PeerTube video captions with TranslateGemma through an OpenAI-compatible chat completions API",
   "engine": {
@@ -12,8 +12,8 @@
     "subtitles",
     "translation"
   ],
-  "homepage": "https://github.com/lmddc-lu/peertube-plugin-subtitle-translator",
-  "bugs": "https://github.com/lmddc-lu/peertube-plugin-subtitle-translator/issues",
+  "homepage": "https://github.com/lmddc-lu/peertube-plugin-subtitle-translator-v2",
+  "bugs": "https://github.com/lmddc-lu/peertube-plugin-subtitle-translator-v2/issues",
   "author": "Luxembourg Media & Digital Design Centre",
   "license": "AGPL-3.0",
   "library": "./dist/main.js",
@@ -40,7 +40,7 @@
   "scripts": {
     "build": "tsc && tsc -p tsconfig.client.json",
     "watch": "tsc --watch",
-    "stage": "npm run build && mkdir -p .staging && rm -rf .staging/peertube-plugin-subtitle-translator .staging/*.tgz && mkdir .staging/peertube-plugin-subtitle-translator && npm pack --pack-destination .staging && tar xzf .staging/peertube-plugin-subtitle-translator-*.tgz -C .staging/peertube-plugin-subtitle-translator --strip-components=1"
+    "stage": "npm run build && mkdir -p .staging && rm -rf .staging/peertube-plugin-subtitle-translator-v2 .staging/*.tgz && mkdir .staging/peertube-plugin-subtitle-translator-v2 && npm pack --pack-destination .staging && tar xzf .staging/peertube-plugin-subtitle-translator-v2-*.tgz -C .staging/peertube-plugin-subtitle-translator-v2 --strip-components=1"
   },
   "devDependencies": {
     "@peertube/peertube-types": "8.3.2",
