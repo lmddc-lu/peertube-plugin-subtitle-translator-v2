@@ -43,23 +43,11 @@ needed.
 
 ## Install
 
-```sh
-npm ci
-npm run build
-peertube-plugins install --path /path/to/peertube-plugin-subtitle-translator-v2
-```
+See the [installation instructions](docs/index.md#installation) in the documentation.
 
 ## Development
 
-`npm run build` compiles the server (`tsconfig.json`) and the client script
-(`tsconfig.client.json`). `npm run stage` builds and unpacks the npm package into
-`.staging/peertube-plugin-subtitle-translator-v2`, a directory that can be mounted into a
-PeerTube container and installed with `npm run plugin:install -- --plugin-path <path>`.
-
-Client scripts are served under the plugin version with immutable caching, so after reinstalling
-the same version, force-reload the script in the browser or bump the version.
-
-Translations of the settings and the panel are in `languages/` (French, German).
+See the [development notes](docs/index.md#development) in the documentation.
 
 ## License
 
