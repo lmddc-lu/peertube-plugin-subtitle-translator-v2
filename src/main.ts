@@ -35,6 +35,8 @@ type PluginConfig = {
 
 type RouteParams = { videoId: string, targetLanguage?: string }
 
+type PublicJob = Omit<TranslationJob, 'detail'>
+
 type ParsedStartBody =
   | { kind: 'valid', source: Language, target: Language, cues: SourceCue[] }
   | { kind: 'invalid', error: string }
@@ -126,7 +128,8 @@ async function register ({
     return (req: Request<RouteParams>, res: Response) => {
       handler(req, res).catch(err => {
         logger.error('[subtitle-translator] route failed', { method: req.method, path: req.path, err })
-        if (!res.headersSent) res.status(500).json({ error: err instanceof Error ? err.message : String(err) })
+        // The error can carry internal details (URLs, gateway answers): they stay in the server log
+        if (!res.headersSent) res.status(500).json({ error: 'Internal error, see the PeerTube server log.' })
       })
     }
   }
@@ -138,13 +141,16 @@ async function register ({
     if (access.kind === 'denied') return res.status(access.httpStatus).json({ error: access.error })
 
     const config = await readConfig()
-    if (typeof config === 'string') return res.json({ targetLanguages: [], jobs: {}, configError: config })
+    if (typeof config === 'string') {
+      logger.warn('[subtitle-translator] translation is not configured', { reason: config })
+      return res.json({ targetLanguages: [], jobs: {}, configured: false })
+    }
 
     const jobList = await Promise.all(config.targetLanguages.map(target => jobs.get(access.video.uuid, target.code)))
-    const jobsByLanguage: Record<string, TranslationJob> = Object.fromEntries(
-      config.targetLanguages.map((target, index) => [ target.code, jobList[index] ])
+    const jobsByLanguage: Record<string, PublicJob | null> = Object.fromEntries(
+      config.targetLanguages.map((target, index) => [ target.code, toPublicJob(jobList[index]) ])
     )
-    return res.json({ targetLanguages: config.targetLanguages, jobs: jobsByLanguage, configError: null })
+    return res.json({ targetLanguages: config.targetLanguages, jobs: jobsByLanguage, configured: true })
   }))
 
   router.post('/translations/:videoId', asyncRoute(async (req, res) => {
@@ -153,17 +159,20 @@ async function register ({
     const { video, user } = access
 
     const config = await readConfig()
-    if (typeof config === 'string') return res.status(503).json({ error: config })
+    if (typeof config === 'string') {
+      logger.warn('[subtitle-translator] translation is not configured', { reason: config })
+      return res.status(503).json({ error: 'Caption translation is not configured.' })
+    }
 
     const body = parseStartBody(req.body, config.targetLanguages)
     if (body.kind === 'invalid') return res.status(400).json({ error: body.error })
 
     if (jobs.isRunning(video.uuid, body.target.code)) {
-      return res.status(200).json({ job: await jobs.get(video.uuid, body.target.code) })
+      return res.status(200).json({ job: toPublicJob(await jobs.get(video.uuid, body.target.code)) })
     }
 
     const job = await jobs.start(video.uuid, { source: body.source, target: body.target, cues: body.cues }, user.id, config.api)
-    return res.status(202).json({ job })
+    return res.status(202).json({ job: toPublicJob(job) })
   }))
 
   router.get('/translations/:videoId/:targetLanguage', asyncRoute(async (req, res) => {
@@ -173,7 +182,7 @@ async function register ({
     const targetLanguage = req.params.targetLanguage
     const job = await jobs.get(access.video.uuid, targetLanguage)
     const vtt = job?.status === 'completed' ? await jobs.getVtt(access.video.uuid, targetLanguage) : null
-    return res.json({ job, vtt })
+    return res.json({ job: toPublicJob(job), vtt })
   }))
 
   router.delete('/translations/:videoId/:targetLanguage', asyncRoute(async (req, res) => {
@@ -201,6 +210,16 @@ module.exports = {
 }
 
 // ############################################################################
+
+/**
+ * A job as sent to the browser: without `detail`, which can carry internal information (gateway
+ * URL, model name, upstream answers). The detail stays in plugin storage and in the server log.
+ */
+function toPublicJob (job: TranslationJob | null): PublicJob | null {
+  if (!job) return null
+  const { detail: _detail, ...publicJob } = job
+  return publicJob
+}
 
 /** Validates the POST body: known source language, configured target language, readable WebVTT with text. */
 function parseStartBody (body: unknown, targetLanguages: Language[]): ParsedStartBody {
