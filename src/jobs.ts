@@ -1,6 +1,12 @@
 /**
- * Caption translation jobs: translate a source caption sentence by sentence, rebuild WebVTT on the
- * source timings and keep it in plugin storage until the client uploads it as a caption.
+ * Caption translation jobs: translate a source caption in batches of consecutive sentences, rebuild
+ * WebVTT on the source timings and keep it in plugin storage until the client uploads it as a caption.
+ *
+ * A batch is sent as one text with one sentence per line, inside TranslateGemma's standard prompt,
+ * so the model sees the surrounding sentences. The answer is accepted only when it has one line per
+ * sentence; otherwise the sentences cannot be matched to their lines, and the batch is translated
+ * again one sentence per request (requests run at temperature 0, so retrying the batch would give
+ * the same answer).
  *
  * There is one job per (video, target language). Captions are uploaded by the browser with the
  * user's own session because plugins have no server-side API to create captions.
@@ -8,11 +14,13 @@
 
 import type { RegisterServerOptions } from '@peertube/peertube-types'
 import { translateText, type Language, type TranslationApiConfig } from './backend'
-import { groupCues, spreadTranslation } from './cues'
+import { batchGroups, groupCues, spreadTranslation, type CueGroup } from './cues'
 import { TranslationError, type TranslationFailureStatus } from './errors'
 import { writeWebVtt, type OutputCue, type SourceCue } from './webvtt'
 
 const MAX_GROUP_CHARS = 600
+const BATCH_MAX_SENTENCES = 4
+const BATCH_MAX_CHARS = 600
 const MAX_LINE_CHARS = 42
 const REQUEST_TIMEOUT_MS = 2 * 60 * 1000
 const REQUEST_MAX_ATTEMPTS = 3
@@ -129,26 +137,17 @@ export function createTranslationJobs ({ storageManager, peertubeHelpers }: Deps
   async function run (
     videoUuid: string,
     request: TranslationRequest,
-    groups: ReturnType<typeof groupCues>,
+    groups: CueGroup[],
     config: TranslationApiConfig,
     job: TranslationJob
   ): Promise<void> {
     let progress = job.progress
     try {
       const output: OutputCue[] = []
-      for (const [ index, group ] of groups.entries()) {
-        const translation = await translateText({
-          config,
-          source: request.source,
-          target: request.target,
-          text: group.text,
-          timeoutMs: REQUEST_TIMEOUT_MS,
-          maxAttempts: REQUEST_MAX_ATTEMPTS,
-          retryDelayMs: REQUEST_RETRY_DELAY_MS,
-          logger
-        })
-        output.push(...spreadTranslation(group, translation, MAX_LINE_CHARS))
-        progress = { done: index + 1, total: groups.length }
+      for (const batch of batchGroups(groups, BATCH_MAX_SENTENCES, BATCH_MAX_CHARS)) {
+        const translations = await translateBatch(videoUuid, request, batch, progress.done, config)
+        output.push(...batch.flatMap((group, index) => spreadTranslation(group, translations[index], MAX_LINE_CHARS)))
+        progress = { done: progress.done + batch.length, total: groups.length }
         await storeJob(videoUuid, { ...job, progress })
       }
 
@@ -170,6 +169,48 @@ export function createTranslationJobs ({ storageManager, peertubeHelpers }: Deps
     }
   }
 
+  /** Returns one translation per group of the batch, each on a single line. */
+  async function translateBatch (
+    videoUuid: string,
+    request: TranslationRequest,
+    batch: CueGroup[],
+    firstSentenceIndex: number,
+    config: TranslationApiConfig
+  ): Promise<string[]> {
+    const translate = (text: string) => translateText({
+      config,
+      source: request.source,
+      target: request.target,
+      text,
+      timeoutMs: REQUEST_TIMEOUT_MS,
+      maxAttempts: REQUEST_MAX_ATTEMPTS,
+      retryDelayMs: REQUEST_RETRY_DELAY_MS,
+      logger
+    })
+    const translateEach = async () => {
+      const translations: string[] = []
+      for (const group of batch) translations.push(toLine(await translate(group.text)))
+      return translations
+    }
+
+    if (batch.length === 1) return translateEach()
+
+    const lines = (await translate(batch.map(group => group.text).join('\n')))
+      .split('\n')
+      .map(toLine)
+      .filter(line => line.length > 0)
+    if (lines.length === batch.length) return lines
+
+    logger.warn('[subtitle-translator] batch answer has the wrong number of lines, translating its sentences one by one', {
+      videoUuid,
+      targetLanguage: request.target.code,
+      firstSentenceIndex,
+      sentLines: batch.length,
+      receivedLines: lines.length
+    })
+    return translateEach()
+  }
+
   return {
     start,
     get,
@@ -177,4 +218,10 @@ export function createTranslationJobs ({ storageManager, peertubeHelpers }: Deps
     clear,
     isRunning: (videoUuid: string, targetLanguage: string) => running.has(id(videoUuid, targetLanguage))
   }
+}
+
+// ############################################################################
+
+function toLine (text: string): string {
+  return text.replace(/\s+/g, ' ').trim()
 }

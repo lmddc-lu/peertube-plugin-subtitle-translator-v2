@@ -117,7 +117,7 @@ async function postChat (url: string, options: TranslateOptions): Promise<unknow
   }
 }
 
-/** Reads `choices[0].message.content` and collapses it to one line; the caller re-wraps it into cues. */
+/** Reads `choices[0].message.content`, trimmed. Line breaks are kept: a batch of sentences comes back one per line. */
 function parseTranslation (body: unknown): string {
   const choices = isRecord(body) ? body.choices : undefined
   const first: unknown = Array.isArray(choices) ? choices[0] : undefined
@@ -127,7 +127,7 @@ function parseTranslation (body: unknown): string {
     throw new TranslationError('invalid_response', `Response has no choices[0].message.content string: ${JSON.stringify(body).slice(0, 500)}`, false)
   }
 
-  const translation = content.replace(/\s+/g, ' ').trim()
+  const translation = content.trim()
   if (!translation) {
     throw new TranslationError('empty_translation', `The model returned an empty translation: ${JSON.stringify(body).slice(0, 500)}`, false)
   }

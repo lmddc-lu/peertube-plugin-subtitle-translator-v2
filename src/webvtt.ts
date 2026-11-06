@@ -65,6 +65,13 @@ export function parseWebVtt (content: string): SourceCue[] {
   return cues
 }
 
+/** Builds one timing line spanning two cues: the start of `first`, and the end and settings of `last`. */
+export function mergeTimings (first: string, last: string): string {
+  const start = first.split(/[ \t]+-->[ \t]+/)[0]
+  const endAndSettings = last.split(/[ \t]+-->[ \t]+/)[1]
+  return `${start} --> ${endAndSettings}`
+}
+
 export function writeWebVtt (cues: OutputCue[]): string {
   const blocks = cues.map(cue => [ cue.timing, ...cue.lines.map(escapeText) ].join('\n'))
   return `WEBVTT\n\n${blocks.join('\n\n')}\n`
